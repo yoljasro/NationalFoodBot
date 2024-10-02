@@ -51,6 +51,10 @@ app.post('/api/payment', async (req, res) => {
     }
 });
 
+app.get('/' , (req , res)=> {
+    res.send("Hello , I'm Jasurbek")
+})
+
 // To'lov statusini olish
 app.post('/api/click-webhook', (req, res) => {
     const { merchant_trans_id, amount, status, click_trans_id } = req.body;
