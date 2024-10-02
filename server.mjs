@@ -17,8 +17,12 @@ const BASE_URL = 'https://fc17-90-156-162-59.ngrok-free.app'; // O'zingizning sa
 app.post('/api/payment', async (req, res) => {
     const { amount, order_id } = req.body;
 
+    if (!amount || !order_id) {
+        return res.status(400).json({ error: 'Amount va order_id kerak!' });
+    }
+
     try {
-        console.log('Payment request:', { amount, order_id }); // Log payment request
+        console.log('Payment request:', { amount, order_id });
 
         // Sign stringni yaratish
         const sign_string = crypto
@@ -35,31 +39,46 @@ app.post('/api/payment', async (req, res) => {
             merchant_id: CLICK_MERCHANT_ID,
             service_id: SERVICE_ID,
             sign_time: new Date().toISOString(),
-            sign_string: sign_string,
-            return_url: `${BASE_URL}/payment-success`,  // To'lov muvaffaqiyatli bo'lganida qaytish manzili
-            cancel_url: `${BASE_URL}/payment-failed`,   // To'lov muvaffaqiyatsiz bo'lganda qaytish manzili
+            sign_string: sign_string,   
+            return_url: `${BASE_URL}/payment-success`,
+            cancel_url: `${BASE_URL}/payment-failed`,
         });
 
-        console.log('Click response:', response.data); // Log Click API response
+        console.log('Click response:', response.data);
 
-        const paymentUrl = response.data.payment_url;  // Clickdan qaytgan URL
-        res.status(200).json({ paymentUrl });  // Frontendga URLni yuborish
+        if (response.data.error) {
+            throw new Error(`Click API xatoligi: ${response.data.error_note}`);
+        }
+
+        const paymentUrl = response.data.payment_url;
+        res.status(200).json({ paymentUrl });
 
     } catch (error) {
-        console.error('Payment error:', error.message);  // Log xatoni
-        res.status(500).json({ error: error.message });
+        if (error.response) {
+            // Axiosdan xato javob
+            console.error('Axios Error:', error.response.data);
+            res.status(500).json({ error: error.response.data });
+        } else if (error.request) {
+            // So'rov amalga oshdi, lekin javob kelmadi
+            console.error('Request Error:', error.request);
+            res.status(500).json({ error: 'Clickdan javob kelmadi' });
+        } else {
+            // So'rovni yaratishdagi boshqa xatoliklar
+            console.error('General Error:', error.message);
+            res.status(500).json({ error: error.message });
+        }
     }
 });
 
-app.get('/' , (req , res)=> {
-    res.send("Hello , I'm Jasurbek")
-})
-
-// To'lov statusini olish
+// To'lov statusini olish uchun webhook
 app.post('/api/click-webhook', (req, res) => {
     const { merchant_trans_id, amount, status, click_trans_id } = req.body;
 
-    // To'lov muvaffaqiyatli bo'lganligini tekshirish
+    if (!merchant_trans_id || !amount || !status) {
+        console.error('Webhook xatolik: kerakli maydonlar yo\'q');
+        return res.status(400).json({ error: 'Kerakli maydonlar yo\'q' });
+    }
+
     if (status === 1) {
         // To'lov qabul qilindi
         console.log('To\'lov muvaffaqiyatli:', merchant_trans_id, amount, click_trans_id);
@@ -69,6 +88,10 @@ app.post('/api/click-webhook', (req, res) => {
     }
 
     res.status(200).send('OK');
+});
+
+app.get('/', (req, res) => {
+    res.send("Hello, I'm Jasurbek");
 });
 
 const port = process.env.PORT || 4000;
