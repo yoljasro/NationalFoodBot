@@ -16,7 +16,7 @@ bot.onText(/\/start/, (msg) => {
         }
     };
 
-    bot.sendMessage(chatId, 'Давайте начнем 🥩 Нажмите кнопку ниже, чтобы заказать идеальный обед!', opts);
+    bot.sendMessage(chatId, 'Давайте начнем 🥩 Нажмите кнопку ниже, чтобы заказать  идеальный обед!', opts);
 });
 
 // Web botga o'tishni amalga oshirish uchun tugmani yaratamiz
