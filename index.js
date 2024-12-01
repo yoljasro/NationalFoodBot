@@ -1,6 +1,6 @@
 const TelegramBot = require('node-telegram-bot-api');
 const token = '6837472952:AAE_uj8Ovl5ult8urjEVQUWptSKSJKBzws4';
-const webAppUrl = 'https://milliyfront-ju7q.vercel.app';
+const webAppUrl = 'https://milliyfrohnt-ju7q.jgvercel.app';
 
 // Botni yaratamiz
 const bot = new TelegramBot(token, { polling: true });
